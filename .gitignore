@@ -1,3 +1,4 @@
 *.pyc
 *~
 .DS_Store
+example_project/django_store
