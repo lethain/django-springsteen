@@ -30,7 +30,8 @@ class CachableSearch(Search):
     _cache_duration = 60 * 30
 
     def make_cache_key(self):
-        return "%s,%s,%s" % (self.__class__, self.query, self.params)
+        key = "%s,%s,%s" % (self.__class__, self.query, self.params)
+        return key.replace(" ","")
 
     def retrieve_cache(self):
         "Need to overload to decode cached data properly."
