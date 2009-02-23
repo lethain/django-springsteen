@@ -1,0 +1,13 @@
+<div class="pagination">
+  <span class="step-links">
+  {% if has_previous %}
+  <a href="?query={{ query }}&start={{ previous_start }}">previous page</a>
+  {% endif %}
+  <span class="current">
+  {{ range.0 }}-{{ range.1 }} of {{ total_results }} results
+  </span>
+  {% if has_next %}
+  <a href="?query={{ query }}&start={{ next_start }}">next page</a>
+  {% endif %}
+  </span>
+</div>
