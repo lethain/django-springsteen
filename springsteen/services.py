@@ -66,13 +66,11 @@ class BossSearch(CachableSearch):
     def run(self):
         self.retrieve_cache()
         if not self._results:
-            print "not cached"
             request = urlopen(self.build_uri())
             raw = request.read()
             self.store_cache(raw)
             results = simplejson.loads(raw)
             self.extract_data(results)
-        print "cached!"
 
     def results(self):
         return self._results
