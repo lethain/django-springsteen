@@ -7,7 +7,7 @@
 <h2 class="count">{{ range.0 }}-{{ range.1 }} of {{ total_results }} results</h2>
 
 <form id="search-form" action="." method="GET">
-<input name="query">
+<input name="query" value="{{ query }}">
 <input type="submit" value="Search">
 </form>
 
@@ -26,7 +26,6 @@
   {% ifequal result.source "springsteen" %}
   {% include "springsteen/springsteen_result.html" %}
   {% endifequal %}
-  
   {% block extra-result-types %}{% endblock %}
   </li>
   {% endfor %}
