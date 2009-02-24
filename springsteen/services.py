@@ -42,9 +42,14 @@ class SpringsteenService(CachableSearch):
 
     def run(self):
         self.retrieve_cache()
-        if not_self._results:
-            request = urlopen(self._uri)
+        if not self._results:
+            uri = "%s?query=%s" % (self._uri, self.query)
+            if self.params.has_key('start'):
+                uri = "%s&start=%s" % (uri, self.params['start'])
+            
+            request = urlopen(uri)
             raw = request.read()
+            print raw
             self.store_cache(raw)
             data = simplejson.loads(raw)
             self.total_results = data['total_results']
@@ -53,9 +58,14 @@ class SpringsteenService(CachableSearch):
     def retrieve_cache(self):
         cached = cache.get(self.make_cache_key())
         if cached != None:
-            data = simplejson.loads(raw)
-            self.results = data['results']
+            data = simplejson.loads(cached)
+            self._results = data['results']
             self.total_results = data['total_results']
+
+    def results(self):
+        for result in self._results:
+            result['source'] = 'springsteen'
+        return self._results
 
 
 class BossSearch(CachableSearch):

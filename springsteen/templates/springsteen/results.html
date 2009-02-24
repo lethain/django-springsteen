@@ -23,6 +23,10 @@
   {% ifequal result.source "news" %}
   {% include "springsteen/news_result.html" %}
   {% endifequal %}
+  {% ifequal result.source "springsteen" %}
+  {% include "springsteen/springsteen_result.html" %}
+  {% endifequal %}
+  
   {% block extra-result-types %}{% endblock %}
   </li>
   {% endfor %}
