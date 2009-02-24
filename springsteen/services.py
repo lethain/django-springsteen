@@ -37,7 +37,7 @@ class CachableSearch(Search):
         cache.set(self.make_cache_key(), raw, self._cache_duration)
 
 
-class SpringsteenService(CachableService):
+class SpringsteenService(CachableSearch):
     _uri = ""
 
     def run(self):
