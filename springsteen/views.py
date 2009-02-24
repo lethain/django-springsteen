@@ -1,6 +1,8 @@
 from django.shortcuts import render_to_response
+from django.http import HttpResponse
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from springsteen.services import News, Web, News
+from django.utils import simplejson
 from time import time
 
 def multi_join(threads, timeout=None):
@@ -10,6 +12,36 @@ def multi_join(threads, timeout=None):
         thread.join(timeout)
         if timeout is not None:
             timeout -= time() - start
+
+def dummy_retrieve_func(query, start, count):
+    """
+    This is a dummy function for retrieving results.
+    It should be replaced by a real function that
+    return data in the same format.
+    """
+    data = {
+        'total_results': 0,
+        'results':[],
+        }
+    return simplejson.dumps(data)
+
+
+def service(request, retrieve_func=dummy_retrieve_func, mimetype="application/json"):
+    query = request.GET.get('query',None)
+    if query:
+        try:
+            count = int(request.GET.get('count','10'))
+        except ValueError:
+            count = 10
+        try:
+            start = int(request.GET.get('start','0'))
+        except ValueError:
+            start = 0
+        start = max(start, 0)
+        return HttpResponse(retrieve_func(query, start,count), mimetype=mimetype)
+    return HttpResponse('{"total_results":0, "results":[] }',
+                        mimetype='application/json')
+
 
 def search(request, timeout=2500, max_count=10, services=(Web,), extra_params={}):
     """
