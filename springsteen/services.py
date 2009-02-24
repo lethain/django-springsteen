@@ -20,11 +20,7 @@ class Search(Thread):
         return len(self._results)
 
     def results(self):
-        """
-        Tuple of dictionaries in format:
-        { 'title':"", 'summary':"", 'url':"" }
-        """
-        return ()
+        return self._results
 
 class CachableSearch(Search):
     _cache_duration = 60 * 30
@@ -39,6 +35,27 @@ class CachableSearch(Search):
 
     def store_cache(self, raw):
         cache.set(self.make_cache_key(), raw, self._cache_duration)
+
+
+class SpringsteenService(CachableService):
+    _uri = ""
+
+    def run(self):
+        self.retrieve_cache()
+        if not_self._results:
+            request = urlopen(self._uri)
+            raw = request.read()
+            self.store_cache(raw)
+            data = simplejson.loads(raw)
+            self.total_results = data['total_results']
+            self._results = data['results']
+
+    def retrieve_cache(self):
+        cached = cache.get(self.make_cache_key())
+        if cached != None:
+            data = simplejson.loads(raw)
+            self.results = data['results']
+            self.total_results = data['total_results']
 
 
 class BossSearch(CachableSearch):
@@ -72,9 +89,6 @@ class BossSearch(CachableSearch):
             self.store_cache(raw)
             results = simplejson.loads(raw)
             self.extract_data(results)
-
-    def results(self):
-        return self._results
 
 
 class Web(BossSearch):
