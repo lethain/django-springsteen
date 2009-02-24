@@ -49,7 +49,6 @@ class SpringsteenService(CachableSearch):
             
             request = urlopen(uri)
             raw = request.read()
-            print raw
             self.store_cache(raw)
             data = simplejson.loads(raw)
             self.total_results = data['total_results']
