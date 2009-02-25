@@ -71,8 +71,9 @@ class BossSearch(CachableService):
     _service = ""
 
     def build_uri(self):
+        query = self.query.replace(' ','+')
         uri = "http://boss.yahooapis.com/ysearch/%s/v1/%s?appid=%s&format=json" \
-            % (self._service, self.query, settings.BOSS_APP_ID)
+            % (self._service, query, settings.BOSS_APP_ID)
         params = ["&%s=%s" % (p, self.params[p]) for p in self.params]
         return "%s%s" % (uri, "".join(params))
 
@@ -87,8 +88,11 @@ class BossSearch(CachableService):
     def retrieve_cache(self):
         cached = cache.get(self.make_cache_key())
         if cached != None:
-            cached = simplejson.loads(cached)
-            self.extract_data(cached)
+            try:
+                cached = simplejson.loads(cached)
+                self.extract_data(cached)
+            except ValueError:
+                pass
 
     def run(self):
         self.retrieve_cache()
