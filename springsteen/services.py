@@ -9,7 +9,7 @@ class Service(Thread):
     _results = []
 
     def __init__(self, query, params={}):
-        super(Search, self).__init__()
+        super(Service, self).__init__()
         self.query = query
         self.params = params.copy()
 
