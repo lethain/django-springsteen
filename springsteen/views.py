@@ -55,7 +55,7 @@ def search(request, timeout=2500, max_count=10, services=(Web,), extra_params={}
     results = []
     total_results = 0
     try:
-        count = int(request.GET.get('count','10'))
+        count = int(request.GET.get('count','%s' % max_count))
     except ValueError:
         count = 10
     count = min(count, max_count)
@@ -79,6 +79,7 @@ def search(request, timeout=2500, max_count=10, services=(Web,), extra_params={}
         for thread in threads:
             results = results + thread.results()
             total_results = total_results + thread.total_results
+
         results = results[:count]
 
     range = [ start+1, min(start+count,total_results) ]
