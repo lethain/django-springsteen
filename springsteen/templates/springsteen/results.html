@@ -3,14 +3,17 @@
 {% block title %}{{ block.super }}: {{ query }}{% endblock %}
 
 {% block body %}
-<h1 class="query">{{ query }}</h1>
-<h2 class="count">{{ range.0 }}-{{ range.1 }} of {{ total_results }} results</h2>
+
 
 <form id="search-form" action="." method="GET">
-<input name="query" value="{{ query }}">
+<input name="query" value="{{ query|default:"" }}">
 <input type="submit" value="Search">
 </form>
 
+
+{% if query %}
+<h1 class="query">{{ query }}</h1>
+<h2 class="count">{{ range.0 }}-{{ range.1 }} of {{ total_results }} results</h2>
 <ol>
   {% for result in results %}
   <li>
@@ -30,7 +33,7 @@
   </li>
   {% endfor %}
 </ol>
-
 {% include "springsteen/paginator.html" %}
+{% endif %}
 
 {% endblock %}
