@@ -4,7 +4,7 @@ from django.utils import simplejson
 from django.conf import settings
 from django.core.cache import cache
 
-class Search(Thread):
+class Service(Thread):
     total_results = 0
     _results = []
 
@@ -22,7 +22,7 @@ class Search(Thread):
     def results(self):
         return self._results
 
-class CachableSearch(Search):
+class CachableService(Service):
     _cache_duration = 60 * 30
 
     def make_cache_key(self):
@@ -37,7 +37,7 @@ class CachableSearch(Search):
         cache.set(self.make_cache_key(), raw, self._cache_duration)
 
 
-class SpringsteenService(CachableSearch):
+class SpringsteenService(CachableService):
     _uri = ""
 
     def run(self):
@@ -67,7 +67,7 @@ class SpringsteenService(CachableSearch):
         return self._results
 
 
-class BossSearch(CachableSearch):
+class BossSearch(CachableService):
     _service = ""
 
     def build_uri(self):
