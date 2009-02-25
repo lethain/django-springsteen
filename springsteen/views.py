@@ -1,7 +1,7 @@
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
-from springsteen.services import News, Web, News
+from springsteen.services import Web, Images, News
 from django.utils import simplejson
 from time import time
 
@@ -43,7 +43,7 @@ def service(request, retrieve_func=dummy_retrieve_func, mimetype="application/js
                         mimetype='application/json')
 
 
-def search(request, timeout=2500, max_count=10, services=(Web,), extra_params={}):
+def search(request, timeout=2500, max_count=10, services=(), extra_params={}):
     """
     
     timeout:      a global timeout for all requested services
@@ -100,3 +100,18 @@ def search(request, timeout=2500, max_count=10, services=(Web,), extra_params={}
         'total_results': total_results,
         }
     return render_to_response("springsteen/results.html",context)
+
+
+def web(request, timeout=2500, max_count=10, extra_params={}):
+    services = (Web,)
+    return search(request,timeout,max_count,services,extra_params)
+
+
+def images(request, timeout=2500, max_count=10, extra_params={}):
+    services = (Images,)
+    return search(request,timeout,max_count,services,extra_params)
+
+
+def news(request, timeout=2500, max_count=10, extra_params={}):
+    services = (News,)
+    return search(request,timeout,max_count,services,extra_params)

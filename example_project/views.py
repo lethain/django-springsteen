@@ -4,7 +4,6 @@ from springsteen.services import Web
 from django.utils import simplejson
 
 class DjangoProjectSearch(Web):
-    _service = "web"
     def __init__(self, query, params={}):
         super(Web, self).__init__(query, params)
         self.params['sites']='djangoproject.com'
