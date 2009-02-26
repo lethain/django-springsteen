@@ -22,6 +22,12 @@ class Service(Thread):
     def results(self):
         return self._results
 
+    def exhausted(self):
+        'Return whether a service has no additional results for query.'
+        start = self.params['start']
+        count = self.params['count']
+        return start+count >= self.total_results 
+
 class CachableService(Service):
     _cache_duration = 60 * 30
 

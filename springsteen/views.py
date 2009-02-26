@@ -43,7 +43,25 @@ def service(request, retrieve_func=dummy_retrieve_func, mimetype="application/js
                         mimetype='application/json')
 
 
-def search(request, timeout=2500, max_count=10, services=(), extra_params={}):
+def fetch_results_batch(query, timeout, services, params):
+    "Perform a batch of requests and aggregate results."
+    threads = [ x(query, params) for x in services ]
+    for thread in threads:
+        thread.start()
+    multi_join(threads, timeout=timeout)
+    total_results = 0
+    results = []
+    unexhausted_services = []
+    for thread in threads:
+        if not thread.exhausted():
+            unexhausted_services.append(thread.__class__)
+        results = results + thread.results()
+        total_results = total_results + thread.total_results
+    return results, total_results, unexhausted_services
+
+
+def search(request, timeout=2500, max_count=10, services=(), \
+           reranking_func=None, extra_params={}):
     """
     
     timeout:      a global timeout for all requested services
@@ -67,22 +85,53 @@ def search(request, timeout=2500, max_count=10, services=(), extra_params={}):
     start = max(start, 0)
 
     if query:
-        params = {
-            'count': count,
-            'start': start,
-            }
-        params.update(extra_params)
-        threads = [ x(query, params) for x in services ]
-        for thread in threads:
-            thread.start()
-        multi_join(threads, timeout=timeout)
-        for thread in threads:
-            results = results + thread.results()
-            total_results = total_results + thread.total_results
+        # because we are aggregating distributed resources,
+        # we don't know how many results they will return,
+        # so finding the 30th result (for example) has potential
+        # to be rather complex
+        #
+        # instead we must build up results from 0th to nth result
+        # due to the caching of service results, this ideally
+        # still only requires one series of requests if the
+        # user is paginating through results (as opposed to jumping
+        # to a high page, for example)
+        batch_start = 0
+        batch_count = count
+        batch_i = 0
+        batch_result_count = 0
+        batches = []
+        max_batches = 3
+        while batch_result_count < start+count and \
+                len(services) > 0 and \
+                batch_i < max_batches:
+            params = {'count':batch_count, 'start':batch_start}
+            params.update(extra_params)
+            batch, total_results, services = fetch_results_batch(query, timeout, services, params)
+            batch_result_count = batch_result_count + len(batch)
+            batches.append(batch)
+            
+            batch_start = batch_start + batch_count
+            batch_i = batch_i + 1
 
-        results = results[:count]
 
-    range = [ start+1, min(start+count,total_results) ]
+        # hook for providing custom ranking for results
+        # we have to rerank each batch individually to
+        # preserve ordering (otherwise you might have results
+        # from the first batch pushed into the second batch,
+        # and thus have results occur on multiple pages.
+        if reranking_func:
+            reranked_batches = []
+            for batch in batches:
+                reranked = reranking_func(batch)
+                reranked_batches.append(reranked)
+            batches = reranked_batches
+
+        for batch in batches:
+            results = results + batch
+    
+        results = results[start:start+count]
+
+    range = ( start+1, min(start+count,total_results) )
     next_start = start + count
     previous_start = start - count
     has_next = range[1] < total_results
