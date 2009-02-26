@@ -61,7 +61,7 @@ def fetch_results_batch(query, timeout, services, params):
 
 
 def search(request, timeout=2500, max_count=10, services=(), \
-           reranking_func=None, extra_params={}):
+           extra_params={}, reranking_func=None):
     """
     
     timeout:      a global timeout for all requested services
