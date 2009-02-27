@@ -10,7 +10,7 @@ class Service(Thread):
 
     def __init__(self, query, params={}):
         super(Service, self).__init__()
-        self.query = query
+        self.query = query.replace(' ','+')
         self.params = params.copy()
 
     def run(self):
@@ -50,22 +50,29 @@ class SpringsteenService(CachableService):
         self.retrieve_cache()
         if not self._results:
             uri = "%s?query=%s" % (self._uri, self.query)
+            self.uri = uri
             if self.params.has_key('start'):
                 uri = "%s&start=%s" % (uri, self.params['start'])
             
             request = urlopen(uri)
             raw = request.read()
             self.store_cache(raw)
-            data = simplejson.loads(raw)
-            self.total_results = data['total_results']
-            self._results = data['results']
+            try:
+                data = simplejson.loads(raw)
+                self.total_results = data['total_results']
+                self._results = data['results']
+            except ValueError:
+                pass
 
     def retrieve_cache(self):
         cached = cache.get(self.make_cache_key())
         if cached != None:
-            data = simplejson.loads(cached)
-            self._results = data['results']
-            self.total_results = data['total_results']
+            try:
+                data = simplejson.loads(cached)
+                self._results = data['results']
+                self.total_results = data['total_results']
+            except ValueError:
+                pass
 
     def results(self):
         for result in self._results:

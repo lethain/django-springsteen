@@ -57,6 +57,7 @@ def fetch_results_batch(query, timeout, services, params):
             unexhausted_services.append(thread.__class__)
         results = results + thread.results()
         total_results = total_results + thread.total_results
+
     return results, total_results, unexhausted_services
 
 
