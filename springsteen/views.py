@@ -61,13 +61,14 @@ def fetch_results_batch(query, timeout, services, params):
 
 
 def search(request, timeout=2500, max_count=10, services=(), \
-           extra_params={}, reranking_func=None):
+               extra_params={}, reranking_func=None, extra_context={}):
     """
-    
     timeout:      a global timeout for all requested services
     max_count:    used to prevent resource draining URL hacking
     services:     services to query with search terms
     extra_params: overrides and extra parameters for searches
+    reranking_func: function for reranking all results
+    extra_context: extra stuff passed to the template for rendering
     """
     query = request.GET.get('query',None)
     results = []
@@ -148,6 +149,7 @@ def search(request, timeout=2500, max_count=10, services=(), \
         'results': results,
         'total_results': total_results,
         }
+    context.update(extra_context)
     return render_to_response("springsteen/results.html",context)
 
 
