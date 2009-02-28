@@ -42,42 +42,50 @@ class CachableService(Service):
     def store_cache(self, raw):
         cache.set(self.make_cache_key(), raw, self._cache_duration)
 
+class HttpCachableService(CachableService):
+    _source = 'web'
 
-class SpringsteenService(CachableService):
-    _uri = ""
+    def uri(self):
+        'Return full uri for query.'
+        return None
 
-    def run(self):
-        self.retrieve_cache()
-        if not self._results:
-            uri = "%s?query=%s" % (self._uri, self.query)
-            self.uri = uri
-            if self.params.has_key('start'):
-                uri = "%s&start=%s" % (uri, self.params['start'])
-            
-            request = urlopen(uri)
-            raw = request.read()
-            self.store_cache(raw)
-            try:
-                data = simplejson.loads(raw)
-                self.total_results = data['total_results']
-                self._results = data['results']
-            except ValueError:
-                pass
+    def decode(self, results):
+        return None
 
     def retrieve_cache(self):
         cached = cache.get(self.make_cache_key())
         if cached != None:
-            try:
-                data = simplejson.loads(cached)
-                self._results = data['results']
-                self.total_results = data['total_results']
-            except ValueError:
-                pass
+            self.decode(cached)
+
+    def run(self):
+        self.retrieve_cache()
+        if not self._results:
+            request = urlopen(self.uri())
+            raw = request.read()
+            self.store_cache(raw)
+            self.decode(raw)
 
     def results(self):
         for result in self._results:
-            result['source'] = 'springsteen'
+            result['source'] = self._source
         return self._results
+
+
+class SpringsteenService(HttpCachableService):
+    _uri = ""
+    _source = 'springsteen'
+
+    def uri(self):
+        uri = "%s?query=%s" % (self._uri, self.query)
+        if self.params.has_key('start'):
+                uri = "%s&start=%s" % (uri, self.params['start'])
+        return uri
+
+    def decode(self, results):
+        data = simplejson.loads(results)
+        self._results = data['results']
+        self.total_results = data['total_results']
+
 
 
 class BossSearch(CachableService):
