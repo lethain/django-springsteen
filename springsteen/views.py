@@ -131,6 +131,15 @@ def search(request, timeout=2500, max_count=10, services=(), \
         for batch in batches:
             results = results + batch
     
+        # remove duplicate results
+        new_results = []
+        seen = {}
+        for result in results:
+            url = result['url']
+            if not seen.has_key(url):
+                new_results.append(result)
+                seen[url] = True
+        results = new_results
         results = results[start:start+count]
 
     range = ( start+1, min(start+count,total_results) )
