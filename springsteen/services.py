@@ -67,6 +67,8 @@ class HttpCachableService(CachableService):
 
     def results(self):
         for result in self._results:
+            if result.has_key('source'):
+                result['_source'] = result['source']
             result['source'] = self._source
         return self._results
 
@@ -87,49 +89,27 @@ class SpringsteenService(HttpCachableService):
         self.total_results = data['total_results']
 
 
+class BossSearch(HttpCachableService):
 
-class BossSearch(CachableService):
-    _service = ""
-
-    def build_uri(self):
+    def uri(self):
         query = self.query.replace(' ','+')
         uri = "http://boss.yahooapis.com/ysearch/%s/v1/%s?appid=%s&format=json" \
-            % (self._service, query, settings.BOSS_APP_ID)
+            % (self._source, query, settings.BOSS_APP_ID)
         params = ["&%s=%s" % (p, self.params[p]) for p in self.params]
         return "%s%s" % (uri, "".join(params))
 
-    def extract_data(self, results):
+    def decode(self, results):
+        results = simplejson.loads(results)
         self.total_results = int(results['ysearchresponse']['totalhits'])
         self._results = results['ysearchresponse']['resultset_%s' % self._service]
-        for result in self._results:
-            if result.has_key('source_name'):
-                result['source_name'] = result['source']
-            result['source'] = self._service
 
-    def retrieve_cache(self):
-        cached = cache.get(self.make_cache_key())
-        if cached != None:
-            try:
-                cached = simplejson.loads(cached)
-                self.extract_data(cached)
-            except ValueError:
-                pass
-
-    def run(self):
-        self.retrieve_cache()
-        if not self._results:
-            request = urlopen(self.build_uri())
-            raw = request.read()
-            self.store_cache(raw)
-            results = simplejson.loads(raw)
-            self.extract_data(results)
 
 
 class Web(BossSearch):
-    _service = "web"
+    _source = "web"
 
 class Images(BossSearch):
-    _service = "images"
+    _source = "images"
 
 class News(BossSearch):
-    _service = "news"
+    _source = "news"
