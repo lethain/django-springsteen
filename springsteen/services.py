@@ -89,6 +89,44 @@ class SpringsteenService(HttpCachableService):
         self.total_results = data['total_results']
 
 
+class TwitterSearchService(HttpCachableService):
+    """
+    Returns Twitter search results in SpringsteenService compatible format.
+
+    This service is intentionally restricted to a maximum of ``_qty`` results,
+    and will not be queried again throughout pagination.
+
+    I've done it this way because old tweets are likely to have extremely
+    low relevency, and I don't want to flood results with them.
+    """
+
+    _source = 'springsteen'
+    _qty = 3
+    _topic = None
+
+    def uri(self):
+        query = self.query
+        if self._topic != None:
+            if not self._topic in query:
+                query = "%s+%s" % (self._topic, query)
+
+        return 'http://search.twitter.com/search.json?q=%s' % query
+
+    def decode(self, results):
+        def transform(result):
+            return {
+                'title':"Twitter: %s" % result['from_user'],
+                'image':result['profile_image_url'],
+                'url':"http://twitter.com/%s/" % result['from_user'],
+                'text':result['text'],
+                }
+
+        data = simplejson.loads(results)
+        results = [ transform(x) for x in data['results'] ]
+        self.total_results = self._qty
+        self._results = results[:self._qty]
+
+
 class BossSearch(HttpCachableService):
 
     def uri(self):
@@ -102,7 +140,6 @@ class BossSearch(HttpCachableService):
         results = simplejson.loads(results)
         self.total_results = int(results['ysearchresponse']['totalhits'])
         self._results = results['ysearchresponse']['resultset_%s' % self._service]
-
 
 
 class Web(BossSearch):

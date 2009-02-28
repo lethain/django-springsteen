@@ -1,3 +1,4 @@
 <h3><a href="{{ result.url }}">{{ result.title|safe }}</a></h3>
+{% if result.image %}<img src="{{ result.image }}">{% endif %}
 <p class="summary">{{ result.text|safe }}</p>
 <span class="url">{{ result.url|safe }}</span>
