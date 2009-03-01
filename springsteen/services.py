@@ -123,7 +123,7 @@ class TwitterSearchService(HttpCachableService):
 
         data = simplejson.loads(results)
         results = [ transform(x) for x in data['results'] ]
-        self.total_results = self._qty
+        self.total_results = min(len(results),self._qty)
         self._results = results[:self._qty]
 
 
