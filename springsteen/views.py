@@ -124,7 +124,7 @@ def search(request, timeout=2500, max_count=10, services=(), \
         if reranking_func:
             reranked_batches = []
             for batch in batches:
-                reranked = reranking_func(batch)
+                reranked = reranking_func(query, batch)
                 reranked_batches.append(reranked)
             batches = reranked_batches
 
