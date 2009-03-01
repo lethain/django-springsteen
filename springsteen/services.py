@@ -76,10 +76,11 @@ class HttpCachableService(CachableService):
 class SpringsteenService(HttpCachableService):
     _uri = ""
     _source = 'springsteen'
+    _use_start_param = True
 
     def uri(self):
         uri = "%s?query=%s" % (self._uri, self.query)
-        if self.params.has_key('start'):
+        if self._use_start_param and self.params.has_key('start'):
                 uri = "%s&start=%s" % (uri, self.params['start'])
         return uri
 
@@ -109,8 +110,10 @@ class TwitterSearchService(HttpCachableService):
         if self._topic != None:
             if not self._topic in query:
                 query = "%s+%s" % (self._topic, query)
-
         return 'http://search.twitter.com/search.json?q=%s' % query
+
+    def filter_results(self, results):
+        return results[:self._qty]
 
     def decode(self, results):
         def transform(result):
@@ -123,9 +126,15 @@ class TwitterSearchService(HttpCachableService):
 
         data = simplejson.loads(results)
         results = [ transform(x) for x in data['results'] ]
-        self.total_results = min(len(results),self._qty)
-        self._results = results[:self._qty]
+        self._results = self.filter_results(results)
+        self.total_results = len(self._results)
 
+class TwitterLinkSearchService(TwitterSearchService):
+    'Returns only Tweets that contain a link.'
+
+    def filter_results(self, results):
+        results = [ x for x in results if 'http://' in x['text'] ]
+        return results[:self._qty]
 
 class BossSearch(HttpCachableService):
 
