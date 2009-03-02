@@ -3,6 +3,10 @@ from threading import Thread
 from django.utils import simplejson
 from django.conf import settings
 from django.core.cache import cache
+try:
+    from xml.etree import cElementTree as ElementTree
+except ImportError:
+    from xml.etree import ElementTree
 
 class Service(Thread):
     total_results = 0
@@ -50,7 +54,7 @@ class HttpCachableService(CachableService):
         return None
 
     def decode(self, results):
-        return None
+        pass
 
     def retrieve_cache(self):
         cached = cache.get(self.make_cache_key())
@@ -73,6 +77,50 @@ class HttpCachableService(CachableService):
         return self._results
 
 
+class AmazonProductService(HttpCachableService):
+    _source = 'springsteen'
+    _base_uri = 'http://ecs.amazonaws.com/onca/xml'
+    _service = 'AWSECommerceService'
+    _source = 'springsteen'
+    _access_key=''
+    _operation = 'ItemSearch'
+    _search_index = 'Books'
+    _search_type = 'Title'
+    _qty = 2
+    _topic = None
+
+    def uri(self):
+        query = self.query
+        if self._topic and not self._topic in query:
+            query = "%s+%s" % (self._topic, query)
+
+        params = (self._base_uri, self._service,
+                  self._access_key, self._operation,
+                  self._search_index, self._search_type,
+                  query)
+        return "%s?Service=%s&AWSAccessKeyId=%s&Operation=%s&SearchIndex=%s&%s=%s" % params
+
+    def decode(self, results):
+        def tag(name):
+            return '{http://webservices.amazon.com/AWSECommerceService/2005-10-05}%s' % name
+        self._results = []
+        elem = ElementTree.XML(results)
+        for item in elem.find(tag('Items')).findall(tag('Item')):
+            #asin = item.find(tag('ASIN')).text
+            url = item.find(tag('DetailPageURL')).text
+            attrs = item.find(tag('ItemAttributes'))
+            authors = (attrs.findall(tag('Author')))
+            author = ', '.join([x.text for x in authors])
+            title = attrs.find(tag('Title')).text
+            
+            self._results.append({'title': "%s: %s" % (author, title),
+                                  'text':'',
+                                  'url':url})
+    
+ 
+        self._results = self._results[:self._qty]
+        self.total_results = len(self._results)
+
 class SpringsteenService(HttpCachableService):
     _uri = ""
     _source = 'springsteen'
@@ -85,9 +133,12 @@ class SpringsteenService(HttpCachableService):
         return uri
 
     def decode(self, results):
-        data = simplejson.loads(results)
-        self._results = data['results']
-        self.total_results = data['total_results']
+        try:
+            data = simplejson.loads(results)
+            self._results = data['results']
+            self.total_results = data['total_results']
+        except ValueError:
+            pass
 
 
 class TwitterSearchService(HttpCachableService):
