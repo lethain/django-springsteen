@@ -77,50 +77,6 @@ class HttpCachableService(CachableService):
         return self._results
 
 
-class AmazonProductService(HttpCachableService):
-    _source = 'springsteen'
-    _base_uri = 'http://ecs.amazonaws.com/onca/xml'
-    _service = 'AWSECommerceService'
-    _source = 'springsteen'
-    _access_key=''
-    _operation = 'ItemSearch'
-    _search_index = 'Books'
-    _search_type = 'Title'
-    _qty = 2
-    _topic = None
-
-    def uri(self):
-        query = self.query
-        if self._topic and not self._topic in query:
-            query = "%s+%s" % (self._topic, query)
-
-        params = (self._base_uri, self._service,
-                  self._access_key, self._operation,
-                  self._search_index, self._search_type,
-                  query)
-        return "%s?Service=%s&AWSAccessKeyId=%s&Operation=%s&SearchIndex=%s&%s=%s" % params
-
-    def decode(self, results):
-        def tag(name):
-            return '{http://webservices.amazon.com/AWSECommerceService/2005-10-05}%s' % name
-        self._results = []
-        elem = ElementTree.XML(results)
-        for item in elem.find(tag('Items')).findall(tag('Item')):
-            #asin = item.find(tag('ASIN')).text
-            url = item.find(tag('DetailPageURL')).text
-            attrs = item.find(tag('ItemAttributes'))
-            authors = (attrs.findall(tag('Author')))
-            author = ', '.join([x.text for x in authors])
-            title = attrs.find(tag('Title')).text
-            
-            self._results.append({'title': "%s: %s" % (author, title),
-                                  'text':'',
-                                  'url':url})
-    
- 
-        self._results = self._results[:self._qty]
-        self.total_results = len(self._results)
-
 class SpringsteenService(HttpCachableService):
     _uri = ""
     _source = 'springsteen'
@@ -139,6 +95,33 @@ class SpringsteenService(HttpCachableService):
             self.total_results = data['total_results']
         except ValueError:
             pass
+
+
+class BossSearch(HttpCachableService):
+
+    def uri(self):
+        query = self.query.replace(' ','+')
+        uri = "http://boss.yahooapis.com/ysearch/%s/v1/%s?appid=%s&format=json" \
+            % (self._source, query, settings.BOSS_APP_ID)
+        params = ["&%s=%s" % (p, self.params[p]) for p in self.params]
+        return "%s%s" % (uri, "".join(params))
+
+    def decode(self, results):
+        results = simplejson.loads(results)
+        self.total_results = int(results['ysearchresponse']['totalhits'])
+        self._results = results['ysearchresponse']['resultset_%s' % self._service]
+
+
+class Web(BossSearch):
+    _source = "web"
+
+
+class Images(BossSearch):
+    _source = "images"
+
+
+class News(BossSearch):
+    _source = "news"
 
 
 class TwitterSearchService(HttpCachableService):
@@ -180,6 +163,7 @@ class TwitterSearchService(HttpCachableService):
         self._results = self.filter_results(results)
         self.total_results = len(self._results)
 
+
 class TwitterLinkSearchService(TwitterSearchService):
     'Returns only Tweets that contain a link.'
 
@@ -187,26 +171,45 @@ class TwitterLinkSearchService(TwitterSearchService):
         results = [ x for x in results if 'http://' in x['text'] ]
         return results[:self._qty]
 
-class BossSearch(HttpCachableService):
+
+class AmazonProductService(HttpCachableService):
+    _source = 'springsteen'
+    _base_uri = 'http://ecs.amazonaws.com/onca/xml'
+    _service = 'AWSECommerceService'
+    _source = 'springsteen'
+    _access_key=''
+    _operation = 'ItemSearch'
+    _search_index = 'Books'
+    _search_type = 'Title'
+    _qty = 2
+    _topic = None
 
     def uri(self):
-        query = self.query.replace(' ','+')
-        uri = "http://boss.yahooapis.com/ysearch/%s/v1/%s?appid=%s&format=json" \
-            % (self._source, query, settings.BOSS_APP_ID)
-        params = ["&%s=%s" % (p, self.params[p]) for p in self.params]
-        return "%s%s" % (uri, "".join(params))
+        query = self.query
+        if self._topic and not self._topic in query:
+            query = "%s+%s" % (self._topic, query)
+
+        params = (self._base_uri, self._service,
+                  self._access_key, self._operation,
+                  self._search_index, self._search_type,
+                  query)
+        return "%s?Service=%s&AWSAccessKeyId=%s&Operation=%s&SearchIndex=%s&%s=%s" % params
 
     def decode(self, results):
-        results = simplejson.loads(results)
-        self.total_results = int(results['ysearchresponse']['totalhits'])
-        self._results = results['ysearchresponse']['resultset_%s' % self._service]
-
-
-class Web(BossSearch):
-    _source = "web"
-
-class Images(BossSearch):
-    _source = "images"
-
-class News(BossSearch):
-    _source = "news"
+        def tag(name):
+            return '{http://webservices.amazon.com/AWSECommerceService/2005-10-05}%s' % name
+        self._results = []
+        elem = ElementTree.XML(results)
+        for item in elem.find(tag('Items')).findall(tag('Item')):
+            #asin = item.find(tag('ASIN')).text
+            url = item.find(tag('DetailPageURL')).text
+            attrs = item.find(tag('ItemAttributes'))
+            authors = (attrs.findall(tag('Author')))
+            author = ', '.join([x.text for x in authors])
+            title = attrs.find(tag('Title')).text
+            
+            self._results.append({'title': "%s: %s" % (author, title),
+                                  'text':'',
+                                  'url':url})
+        self._results = self._results[:self._qty]
+        self.total_results = len(self._results)
