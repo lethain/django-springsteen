@@ -1,4 +1,5 @@
-<h3><a href="{{ result.url }}">{{ result.title|safe }}</a></h3>
+{% load springsteen %}
+<h3><a href="{{ result.url }}">{{ result.title|truncatewords_html:10|safe }}</a></h3>
 {% if result.image %}<img src="{{ result.image }}">{% endif %}
-<p class="summary">{{ result.text|safe }}</p>
-<span class="url">{{ result.url|safe }}</span>
+{% if result.text %}<p class="summary">{{ result.text|safe }}</p>{% endif%}
+<span class="url">{{ result.url|clean_url }}</span>
