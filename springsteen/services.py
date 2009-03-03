@@ -109,7 +109,7 @@ class BossSearch(HttpCachableService):
     def decode(self, results):
         results = simplejson.loads(results)
         self.total_results = int(results['ysearchresponse']['totalhits'])
-        self._results = results['ysearchresponse']['resultset_%s' % self._service]
+        self._results = results['ysearchresponse']['resultset_%s' % self._source]
 
 
 class Web(BossSearch):
