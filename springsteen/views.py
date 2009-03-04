@@ -4,6 +4,7 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from springsteen.services import Web, Images, News
 from django.utils import simplejson
 from time import time
+from django.conf import settings
 
 def multi_join(threads, timeout=None):
     'Join multiple threads with shared timeout.'
@@ -102,7 +103,7 @@ def search(request, timeout=2500, max_count=10, services=(), \
         batch_i = 0
         batch_result_count = 0
         batches = []
-        max_batches = 3
+        max_batches = getattr(settings, 'SPRINGSTEEN_MAX_BATCHES', 3)
         while batch_result_count < start+count and \
                 len(services) > 0 and \
                 batch_i < max_batches:
