@@ -1,6 +1,5 @@
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
-from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from springsteen.services import Web, Images, News
 from django.utils import simplejson
 from time import time
