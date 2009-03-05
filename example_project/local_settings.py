@@ -14,8 +14,4 @@ MEDIA_ROOT = os.path.join(ROOT_PATH, 'media')
 TEMPLATE_DIRS = (
     os.path.join(ROOT_PATH, 'templates'),
 )
-MEDIA_URL = 'http://127.0.0.1:8000/media/'
-ADMIN_MEDIA_PREFIX = '/admin_media/'
-
-ADMINS = ('lethain@gmail.com',)
-MANAGERS = ADMINS 
+MEDIA_URL = '/media/'
