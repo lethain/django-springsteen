@@ -1,4 +1,6 @@
 *.pyc
 *~
 .DS_Store
-example_project/django_store
+example_project/django_cache
+example_project/logs
+example_project/boss_settings.py
