@@ -15,3 +15,6 @@ TEMPLATE_DIRS = (
     os.path.join(ROOT_PATH, 'templates'),
 )
 MEDIA_URL = '/media/'
+
+SPRINGSTEEN_LOG_QUERIES = False
+SPRINGSTEEN_LOG_DIR = os.path.join(ROOT_PATH,'logs')

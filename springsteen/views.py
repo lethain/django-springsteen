@@ -4,6 +4,7 @@ from springsteen.services import Web, Images, News
 from django.utils import simplejson
 from time import time
 from django.conf import settings
+import springsteen.utils
 
 def multi_join(threads, timeout=None):
     'Join multiple threads with shared timeout.'
@@ -87,6 +88,9 @@ def search(request, timeout=2500, max_count=10, services=(), \
     start = max(start, 0)
 
     if query:
+        # log the query
+        springsteen.utils.log_query(query)
+
         # because we are aggregating distributed resources,
         # we don't know how many results they will return,
         # so finding the 30th result (for example) has potential
