@@ -15,7 +15,7 @@ try:
             text = db.StringProperty()
             
         def log_query(msg):
-            logged = Query()
+            logged = QueryLog()
             logged.text = msg.lower()
             logged.put()
 
