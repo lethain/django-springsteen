@@ -13,11 +13,18 @@ except ImportError:
 class Service(Thread):
     total_results = 0
     _results = []
+    _topic = None
 
     def __init__(self, query, params={}):
         super(Service, self).__init__()
-        self.query = query.replace(' ','+')
+        self.query = self.rewrite_query(query)
         self.params = params.copy()
+
+    def rewrite_query(self, query):
+        query = query.replace(' ','+')
+        if self._topic and not self._topic in query:
+            query = "%s+%s" % (self._topic, query)
+        return query
 
     def run(self):
         return False
@@ -139,14 +146,9 @@ class TwitterSearchService(HttpCachableService):
 
     _source = 'springsteen'
     _qty = 3
-    _topic = None
 
     def uri(self):
-        query = self.query
-        if self._topic != None:
-            if not self._topic in query:
-                query = "%s+%s" % (self._topic, query)
-        return 'http://search.twitter.com/search.json?q=%s' % query
+        return 'http://search.twitter.com/search.json?q=%s' % self.query
 
     def filter_results(self, results):
         return results[:self._qty]
@@ -184,17 +186,12 @@ class AmazonProductService(HttpCachableService):
     _search_index = 'Books'
     _search_type = 'Title'
     _qty = 2
-    _topic = None
 
     def uri(self):
-        query = self.query
-        if self._topic and not self._topic in query:
-            query = "%s+%s" % (self._topic, query)
-
         params = (self._base_uri, self._service,
                   self._access_key, self._operation,
                   self._search_index, self._search_type,
-                  query)
+                  self.query)
         return "%s?Service=%s&AWSAccessKeyId=%s&Operation=%s&SearchIndex=%s&%s=%s" % params
 
     def decode(self, results):
