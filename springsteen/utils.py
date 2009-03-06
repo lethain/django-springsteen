@@ -6,7 +6,7 @@ try:
         return google.appengine.api.memcache.get(key)
 
     def cache_put(key, value, duration):
-        google.appengine.api.memcache.add(key, value, duration)
+        google.appengine.api.memcache.set(key, value, duration)
 
     def log_query(msg):
         pass
