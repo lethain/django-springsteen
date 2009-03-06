@@ -1,9 +1,11 @@
 # Settings for devel server
+SPRINGSTEEN_LOG_QUERIES = False # True
+
 import os
 ROOT_PATH = os.path.dirname(__file__)
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
-CACHE_BACKEND='file://%s/django_cache' % ROOT_PATH
+CACHE_BACKEND = "dummy:///"
 DATABASE_ENGINE = None
 DATABASE_NAME = None
 DATABASE_USER = ''
@@ -25,4 +27,4 @@ MIDDLEWARE_CLASSES = (
 INSTALLED_APPS = (
     'springsteen',
 )
-CACHE_BACKEND = "dummy:///"
+
