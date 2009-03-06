@@ -1,0 +1,61 @@
+{% extends "springsteen/base.html" %}
+
+{% block title %}{{ query }} @ {{ block.super }}{% endblock %}
+
+{% block body %}
+
+
+{% if query %}
+<form id="search-form" class="have-query" action="." method="GET">
+{% else %}
+<form id="search-form" class="no-query" action="." method="GET">
+{% endif %}
+<input name="query" value="{{ query|default:"" }}">
+<input type="submit" value="Search">
+</form>
+
+{% if query %}
+{% if suggestions %}
+<div class="suggestion">
+  {% for suggestion in suggestions %}
+  <p>Are you looking for <a href="{{ suggestion.1 }}">{{ suggestion.0 }}</a>?</p>
+  {% endfor %}
+</div>
+{% endif %}
+{% if documentation %}
+<div class="documentation">
+  <h3>Related Documentation</h3>
+  <ul>
+  {% for doc in documentation %}
+    <li><a href="http://docs.findjango.com/{{ doc.link }}">{{ doc.title }}</a></li>
+  {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<h2 class="count">{{ range.0 }}-{{ range.1 }} of {{ total_results }} results</h2>
+<ol>
+  {% for result in results %}
+  <li>
+  {% ifequal result.source "web" %}
+  {% include "springsteen/web_result.html" %}
+  {% endifequal %}
+  {% ifequal result.source "images" %}
+  {% include "springsteen/image_result.html" %}
+  {% endifequal %}
+  {% ifequal result.source "news" %}
+  {% include "springsteen/news_result.html" %}
+  {% endifequal %}
+  {% ifequal result.source "springsteen" %}
+  {% include "springsteen/springsteen_result.html" %}
+  {% endifequal %}
+  {% block extra-result-types %}{% endblock %}
+  <a class="report" href="/report-result/?query={{ query|urlencode }}&start={{ start|default:"0" }}&uri={{ result.url|urlencode }}">mark irrelevant</a>
+  <br class="clear">
+  </li>
+  {% endfor %}
+</ol>
+{% include "springsteen/paginator.html" %}
+{% endif %}
+
+{% endblock %}
