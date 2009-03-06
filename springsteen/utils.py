@@ -1,3 +1,4 @@
+from django.conf import settings
 try:
     # Setup utilities for App Engine deployment
     import google.appengine.api
@@ -8,13 +9,23 @@ try:
     def cache_put(key, value, duration):
         google.appengine.api.memcache.set(key, value, duration)
 
-    def log_query(msg):
-        pass
+    if getattr(settings, 'SPRINGSTEEN_LOG_QUERIES', False):
+        from google.appengine.ext import db
+        class QueryLog(db.Model):
+            text = db.StringProperty()
+            
+        def log_query(msg):
+            logged = Query()
+            logged.text = msg.lower()
+            logged.put()
+
+    else:
+        def log_query(msg):
+            pass
 
 
 except ImportError:
     # Setup utilities for normal Django deployment
-    from django.conf import settings
     import django.core.cache
     import logging, os
 
