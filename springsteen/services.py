@@ -14,6 +14,7 @@ class Service(Thread):
     total_results = 0
     _results = []
     _topic = None
+    _qty = None
 
     def __init__(self, query, params={}):
         super(Service, self).__init__()
@@ -28,6 +29,12 @@ class Service(Thread):
 
     def run(self):
         return False
+
+    def filter_results(self):
+        'Limits maximum results fetched from  a given source.'
+        if self._qty:
+            self._results = self._results[:self._qty]
+            self.total_results = len(self._results)
 
     def count(self):
         return len(self._results)
@@ -77,6 +84,7 @@ class HttpCachableService(CachableService):
             raw = request.read()
             self.store_cache(raw)
             self.decode(raw)
+        self.filter_results()
 
     def results(self):
         for result in self._results:
@@ -150,9 +158,6 @@ class TwitterSearchService(HttpCachableService):
     def uri(self):
         return 'http://search.twitter.com/search.json?q=%s' % self.query
 
-    def filter_results(self, results):
-        return results[:self._qty]
-
     def decode(self, results):
         def transform(result):
             return {
@@ -163,17 +168,16 @@ class TwitterSearchService(HttpCachableService):
                 }
 
         data = simplejson.loads(results)
-        results = [ transform(x) for x in data['results'] ]
-        self._results = self.filter_results(results)
+        self._results = [ transform(x) for x in data['results'] ]
         self.total_results = len(self._results)
-
 
 class TwitterLinkSearchService(TwitterSearchService):
     'Returns only Tweets that contain a link.'
 
-    def filter_results(self, results):
-        results = [ x for x in results if 'http://' in x['text'] ]
-        return results[:self._qty]
+    def filter_results(self):
+        self._results = [ x for x in self._results if 'http://' in x['text'] ]
+        super(TwitterLinkSearchService, self).filter_results()
+        
 
 
 class AmazonProductService(HttpCachableService):
