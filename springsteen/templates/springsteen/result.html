@@ -2,4 +2,7 @@
 <h3><a href="{{ result.url }}">{{ result.title|truncatewords_html:10|safe }}</a></h3>
 {% if result.image %}<img src="{{ result.image }}">{% endif %}
 {% if result.text %}<p class="summary">{{ result.text|safe }}</p>{% endif%}
+{% if result.abstract %}<p class="summary">{{ result.abstract|safe }}</p>{% endif%}
+{% if result.tags %}<span class="tags">{% for tag in result.tags %}<span>{{ tag }}</span>{% endfor %}</span>{% endif %}
+
 <span class="url">{{ result.url|clean_url }}</span>

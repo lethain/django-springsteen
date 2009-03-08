@@ -1,9 +1,0 @@
-{% load springsteen %}
-<h3 class="metaweb"><a href="http://www.freebase.com{{ result.url }}">{{ result.title|truncatewords_html:10|safe }}</a></h3>
-{% if result.image %}<img src="http://www.freebase.com/api/trans/image_thumb{{ result.image }}?maxheight=45&maxwidth=45&mode=fillcrop">{% endif %}
-{% if result.text %}<p class="summary">{{ result.text|safe }}</p>{% endif%}
-{% if result.topics %}
-<span class="topic">{% for topic in result.topics %}<span>{{ topic.name }}</span>{% endfor %}</span>
-{% endif%}
-<br>
-<span class="url">http://www.freebase.com{{ result.url }}</span>

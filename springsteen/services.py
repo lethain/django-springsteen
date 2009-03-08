@@ -200,14 +200,14 @@ class MetawebService(HttpCachableService):
             data =  {
                 'title':title,
                 'text':'',
-                'url': id,
+                'url': u"http://www.freebase.com%s" % id,
                 }
             if aliases:
                 data['alias'] = aliases
             if topics:
-                data['topics'] = topics
+                data['tags'] = [ x['name'] for x in topics ]
             if image:
-                data['image'] = image['id']
+                data['image'] = u"http://www.freebase.com/api/trans/image_thumb%s?maxheight=45&maxwidth=45&mode=fillcrop" % image['id']
             return data
 
 
