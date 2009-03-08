@@ -179,6 +179,40 @@ class TwitterLinkSearchService(TwitterSearchService):
         super(TwitterLinkSearchService, self).filter_results()
         
 
+class MetawebService(HttpCachableService):
+    _source = 'metaweb'
+    _service = 'search'
+    _params = ''
+    _qty = 3
+
+    def uri(self):
+        params = (self._service, self.query, self._params)
+        return 'http://www.freebase.com/api/service/%s?query=%s%s' % params
+        
+    def decode(self, results):
+        self._results = simplejson.loads(results)['result']
+        def convert(result):
+            title = result['name']
+            topics = result['type']
+            id = result['id']
+            aliases = result['alias']
+            image = result['image']
+            data =  {
+                'title':title,
+                'text':'',
+                'url': id,
+                }
+            if aliases:
+                data['alias'] = aliases
+            if topics:
+                data['topics'] = topics
+            if image:
+                data['image'] = image['id']
+            return data
+
+
+        self._results = [ convert(x) for x in self._results ]
+
 
 class AmazonProductService(HttpCachableService):
     _source = 'springsteen'
