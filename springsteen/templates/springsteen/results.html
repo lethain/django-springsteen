@@ -14,8 +14,8 @@
 {% if query %}
 <h1 class="query">{{ query }}</h1>
 <h2 class="count">{{ range.0 }}-{{ range.1 }} of {{ total_results }} results</h2>
-<ol>
-  {% for result in results %}<li>{% include "springsteen/result.html" %}</li>{% endfor %}
+<ol class="results">
+  {% for result in results %}<li class="result {{ result.source }}">{% include "springsteen/result.html" %}</li>{% endfor %}
 </ol>
 {% include "springsteen/paginator.html" %}
 {% endif %}
