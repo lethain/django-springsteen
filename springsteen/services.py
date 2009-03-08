@@ -214,6 +214,37 @@ class MetawebService(HttpCachableService):
         self._results = [ convert(x) for x in self._results ]
 
 
+class DeliciousPopularService(HttpCachableService):
+    _base = 'http://feeds.delicious.com/v2/json/popular/' #{tag}
+    _qty = 5
+    _source = 'delicious'
+
+    def uri(self):
+        uri = u"%s%s" % (self._base, self.query)
+        if self._qty:
+            uri = "%s?count=%s" % (uri, self._qty)
+        return uri
+
+    def decode(self, raw):
+        def convert(result):
+            return {
+                'title':result['d'],
+                'url':result['u'],
+                'text':'',
+                'tags':result['t'],
+                'datetime':result['dt'],
+                }
+
+        results = simplejson.loads(raw)
+        self._results = [ convert(x) for x in results ]
+        self.total_results = len(self._results)
+        
+
+
+class DeliciousRecentService(DeliciousPopularService):
+    _base = 'http://feeds.delicious.com/v2/json/tag/' # {tag[+tag+...+tag]}
+
+
 class AmazonProductService(HttpCachableService):
     _source = 'springsteen'
     _base_uri = 'http://ecs.amazonaws.com/onca/xml'

@@ -32,6 +32,9 @@
   {% ifequal result.source "metaweb" %}
   {% include "springsteen/metaweb_result.html" %}
   {% endifequal %}
+  {% ifequal result.source "delicious" %}
+  {% include "springsteen/delicious_result.html" %}
+  {% endifequal %}
   {% block extra-result-types %}{% endblock %}
   </li>
   {% endfor %}

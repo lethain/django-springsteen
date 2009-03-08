@@ -1,6 +1,6 @@
 from springsteen.views import search as default_search
 from springsteen.views import service
-from springsteen.services import Web, MetawebService, TwitterLinkSearchService
+from springsteen.services import Web, MetawebService, DeliciousPopularService, TwitterLinkSearchService
 from django.utils import simplejson
 
 class DjangoProjectSearch(Web):
@@ -8,8 +8,8 @@ class DjangoProjectSearch(Web):
         super(Web, self).__init__(query, params)
         self.params['sites']='djangoproject.com'
 
-def search(request, timeout=2000, max_count=5, extra_params={}):
-    services = (MetawebService, TwitterLinkSearchService,DjangoProjectSearch)
+def search(request, timeout=2000, max_count=10, extra_params={}):
+    services = (DeliciousPopularService, MetawebService, TwitterLinkSearchService,DjangoProjectSearch)
     return default_search(request, timeout, max_count, services, extra_params)
 
 

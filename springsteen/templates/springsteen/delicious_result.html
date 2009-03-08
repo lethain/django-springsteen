@@ -1,0 +1,7 @@
+{% load springsteen %}
+<h3 class="delicious"><a href="{{ result.url }}">{{ result.title|truncatewords_html:10|safe }}</a></h3>
+{% if result.image %}<img src="{{ result.image }}">{% endif %}
+<span class="tags">{% for tag in result.tags %}<span>{{ tag }}</span>{% endfor %}</span>
+<br>
+{% if result.text %}<p class="summary">{{ result.text|safe }}</p>{% endif%}
+<span class="url">{{ result.url|clean_url }}</span>
