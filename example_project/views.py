@@ -1,11 +1,11 @@
 from springsteen.views import search as default_search
 from springsteen.views import service
-from springsteen.services import Web, MetawebService, DeliciousPopularService, TwitterLinkSearchService
+from springsteen.services import *
 from django.utils import simplejson
 
 
 def search(request, timeout=2000, max_count=20, extra_params={}):
-    services = (DeliciousPopularService, Web)
+    services = (GitHubService, DeliciousPopularService, Web)
     return default_search(request, timeout, max_count, services, extra_params)
 
 

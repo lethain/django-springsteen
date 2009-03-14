@@ -238,11 +238,40 @@ class DeliciousPopularService(HttpCachableService):
         results = simplejson.loads(raw)
         self._results = [ convert(x) for x in results ]
         self.total_results = len(self._results)
-        
 
 
 class DeliciousRecentService(DeliciousPopularService):
     _base = 'http://feeds.delicious.com/v2/json/tag/' # {tag[+tag+...+tag]}
+
+
+class GitHubService(HttpCachableService):
+    _source = 'github'
+    _base = 'http://github.com/api/v1/json/search/'
+    _qty = 5
+
+    def uri(self):
+        return u"%s%s" % (self._base, self.query)
+
+    def decode(self, raw):
+        def convert(result):
+            return {
+                'title': u"%s's %s" % (result['username'],result['name']),
+                'url':u"http://github.com/%s/%s/tree/master" % (result['username'],result['name']),
+                'text':result['description'],
+                'size':result['size'],
+                'is_fork':result['fork'],
+                'followers':result['followers'],
+                'language':result['language'],
+                'name':result['name'],
+                'username':result['username'],
+                'pushed':result['pushed'],
+                'created':result['created'],
+                }
+        json = simplejson.loads(raw)
+        results = json['repositories']
+        self._results = [ convert(x) for x in results ]
+        self.total_results = len(self._results)
+
 
 
 class AmazonProductService(HttpCachableService):
