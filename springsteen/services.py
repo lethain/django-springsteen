@@ -1,3 +1,4 @@
+import operator
 from urllib import urlopen
 from threading import Thread
 from django.utils import simplejson
@@ -14,16 +15,20 @@ class Service(Thread):
     total_results = 0
     _results = []
     _topic = None
+    # pruning_mechanisms = ['query', 'content']
+    _prune_mechanism = 'query' 
     _qty = None
 
     def __init__(self, query, params={}):
         super(Service, self).__init__()
         self.query = self.rewrite_query(query)
         self.params = params.copy()
+        if self._topic:
+            self._topic = self._topic.lower()
 
     def rewrite_query(self, query):
         query = query.replace(' ','+')
-        if self._topic and not self._topic in query:
+        if self._topic and self._prune_mechanism == 'query' and not self._topic in query:
             query = "%s+%s" % (self._topic, query)
         return query
 
@@ -32,6 +37,13 @@ class Service(Thread):
 
     def filter_results(self):
         'Limits maximum results fetched from  a given source.'
+        if self._topic and self._prune_mechanism == 'content':
+            def test(result):
+                if self._topic in result['title'].lower() or self._topic in result['text'].lower():
+                    return True
+                return False
+            self._results = [ x for x in self._results if test(x) ]
+
         if self._qty:
             self._results = self._results[:self._qty]
             self.total_results = len(self._results)
@@ -254,6 +266,9 @@ class GitHubService(HttpCachableService):
 
     def decode(self, raw):
         def convert(result):
+            score = result['score'] + result['followers']*0.01
+            if result['fork'] is True:
+                score += 0.05
             return {
                 'title': u"%s's %s" % (result['username'],result['name']),
                 'url':u"http://github.com/%s/%s/tree/master" % (result['username'],result['name']),
@@ -266,12 +281,13 @@ class GitHubService(HttpCachableService):
                 'username':result['username'],
                 'pushed':result['pushed'],
                 'created':result['created'],
+                'score':score,
                 }
         json = simplejson.loads(raw)
         results = json['repositories']
         self._results = [ convert(x) for x in results ]
+        self._results.sort(reverse=True,key=operator.itemgetter('score'))
         self.total_results = len(self._results)
-
 
 
 class AmazonProductService(HttpCachableService):
