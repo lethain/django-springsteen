@@ -63,7 +63,8 @@ def fetch_results_batch(query, timeout, services, params):
 
 
 def search(request, timeout=2500, max_count=10, services=(), \
-               extra_params={}, reranking_func=None, extra_context={}):
+               extra_params={}, reranking_func=None, extra_context={},\
+               render=True):
     """
     timeout:      a global timeout for all requested services
     max_count:    used to prevent resource draining URL hacking
@@ -80,7 +81,6 @@ def search(request, timeout=2500, max_count=10, services=(), \
     except ValueError:
         count = 10
     count = min(count, max_count)
-
     try:
         start = int(request.GET.get('start','0'))
     except ValueError:
@@ -146,25 +146,31 @@ def search(request, timeout=2500, max_count=10, services=(), \
         results = new_results
         results = results[start:start+count]
 
-    range = ( start+1, min(start+count,total_results) )
-    next_start = start + count
-    previous_start = start - count
-    has_next = range[1] < total_results
-    has_previous = range[0] > 1
-    context = {
-        'query': query,
-        'count': count,
-        'start': start,
-        'range': range,
-        'has_next': has_next,
-        'has_previous': has_previous,
-        'next_start': next_start,
-        'previous_start': previous_start,
-        'results': results,
-        'total_results': total_results,
-        }
-    context.update(extra_context)
-    return render_to_response("springsteen/results.html",context)
+    if render:
+        range = ( start+1, min(start+count,total_results) )
+        next_start = start + count
+        previous_start = start - count
+        has_next = range[1] < total_results
+        has_previous = range[0] > 1
+        context = {
+            'query': query,
+            'count': count,
+            'start': start,
+            'range': range,
+            'has_next': has_next,
+            'has_previous': has_previous,
+            'next_start': next_start,
+            'previous_start': previous_start,
+            'results': results,
+            'total_results': total_results,
+            }
+        context.update(extra_context)
+        return render_to_response("springsteen/results.html",context)
+    else:
+        return {'total_results': total_results,
+                'results': results,
+                'start': start,
+                'count': count }
 
 
 def web(request, timeout=2500, max_count=10, extra_params={}):
